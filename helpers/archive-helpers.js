@@ -1,73 +1,81 @@
 var fs = require('fs');
 var path = require('path');
 var _ = require('underscore');
-var helpers = require('../web/http-helpers.js');
-
-/*
- * You will need to reuse the same paths many times over in the course of this sprint.
- * Consider using the `paths` object below to store frequently used file paths. This way,
- * if you move any files, you'll only need to change your code in one place! Feel free to
- * customize it in any way you wish.
- */
+var handler = require("../web/request-handler.js");
 
 exports.paths = {
   siteAssets: path.join(__dirname, '../web/public'),
   archivedSites: path.join(__dirname, '../archives/sites'),
   list: path.join(__dirname, '../archives/sites.txt')
 };
-
-// Used for stubbing paths for tests, do not modify
+//for test
 exports.initialize = function(pathsObj){
   _.each(pathsObj, function(path, type) {
     exports.paths[type] = path;
   });
 };
 
-// The following function names are provided to you to suggest how you might
-// modularize your code. Keep it clean!
-
 exports.readListOfUrls = function(callback){
   fs.readFile(exports.paths.list, function(error, data) {
     data = data.toString().split('\n');
-    callback(data);
+    if (callback) {
+      callback(data);
+    }
   });
 };
 
 exports.isUrlInList = function(url, callback){
+  console.log("checking if url is in list");
   exports.readListOfUrls(function(contents) {
-    if(url) {
-      callback(contents);
-    }
+    var found = _.any(contents, function(site, url){
+       return site.match(url);
+    });
+    callback(found);
   });
 };
 
-exports.addUrlToList = function(url){
-  //url=google.com
-  // /google.com
-  // var pathName = '/' + url.slice(4);
-  //append 
-  fs.appendFile(exports.paths.list, url, '\n', function(error) {
-    if(error) {
-      console.log("There is a error" + error);
+exports.addUrlToList = function(url, callback){
+  var body = url;
+  var pathName = '/'+body;
+  console.log("the url is: ", body);
+  // append file to archives/sites
+  var archiveFile = fs.openSync(exports.paths.archivedSites + pathName, "wx");
+  fs.writeSync(archiveFile, body, function(){
+    if (err) {
+      callback("error is:", err);
+    } else {
+      callback("file written!");
     }
   });
-  //add file
-  var writeFile = fs.openSync(exports.paths.list + pathName, "wx");
-  fs.writeSync(writeFile, pathName);
-  fs.closeSync(exports.paths.list + pathName);
-  //add to sites.txt
+  fs.closeSync(archiveFile);
+  //write and append text
+  fs.appendFile(exports.paths.list, body, function(err) {
+    if (err) {
+      callback("ERROR is: ", err);
+    }
+    callback("file saved");
+  });
 };
 
 exports.isUrlArchived = function(url, callback){
-  fs.readdir(exports.paths.archivedSites, function(error, data) {
-    callback(_.contains(data, url));
+  console.log("checking if url is archived");
+  var urlList = fs.readdir(exports.paths.archivedSites, function (err, results){
+    if (!err) {
+      console.log("checking url and list ", url, urlList);
+      console.log(_.contains(urlList, url));
+    }else {
+      console.log("error is :", err);
+    }
   });
 };
 
 exports.downloadUrls = function(url){
   http.get('http://' + url, function(response) {
-    helpers.handlePost(response, function(data) {
-      fs.writeFile(path.join(exports.paths.archivedSites, url), data);
+    //send get req
+    // helpers.handlePost(response, function(data) {
+    fs.readFile(path.join(exports.paths.archivedSites, url), function(data){
+      response.writeHead(200, handler.headers);
+      response.end(data);
     });
   });
 };
