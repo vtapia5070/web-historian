@@ -3,8 +3,6 @@ var handler = require("./request-handler");
 var initialize = require("./initialize.js");
 var HTTPRequest = require('HTTPRequest');
 
-// Why do you think we have this here?
-// HINT: It has to do with what's in .gitignore
 initialize();
 
 var port = 8080;
@@ -17,4 +15,3 @@ if (module.parent) {
   server.listen(port, ip);
   console.log("Listening on http://" + ip + ":" + port);
 }
-

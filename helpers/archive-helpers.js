@@ -8,7 +8,8 @@ exports.paths = {
   archivedSites: path.join(__dirname, '../archives/sites'),
   list: path.join(__dirname, '../archives/sites.txt')
 };
-//for test
+
+// Used for stubbing paths for tests
 exports.initialize = function(pathsObj){
   _.each(pathsObj, function(path, type) {
     exports.paths[type] = path;
@@ -37,19 +38,17 @@ exports.isUrlInList = function(url, callback){
 exports.addUrlToList = function(url, callback){
   var body = url;
   var pathName = '/'+body;
-  console.log("the url is: ", body);
   // append file to archives/sites
-  var archiveFile = fs.openSync(exports.paths.archivedSites + pathName, "wx");
-  fs.writeSync(archiveFile, body, function(){
-    if (err) {
-      callback("error is:", err);
-    } else {
-      callback("file written!");
-    }
-  });
-  fs.closeSync(archiveFile);
-  //write and append text
-  fs.appendFile(exports.paths.list, body, function(err) {
+  // var archiveFile = fs.openSync(exports.paths.archivedSites + pathName, "wx");
+  // fs.writeSync(archiveFile, body, function(){
+  //   if (err) {
+  //     callback("error is:", err);
+  //   } else {
+  //     callback("file written!");
+  //   }
+  // });
+  // fs.closeSync(archiveFile);
+  fs.appendFile(exports.paths.list, body + '\n', function(err) {
     if (err) {
       callback("ERROR is: ", err);
     }
@@ -68,14 +67,14 @@ exports.isUrlArchived = function(url, callback){
     }
   });
 };
-
-exports.downloadUrls = function(url){
-  http.get('http://' + url, function(response) {
-    //send get req
-    // helpers.handlePost(response, function(data) {
-    fs.readFile(path.join(exports.paths.archivedSites, url), function(data){
-      response.writeHead(200, handler.headers);
-      response.end(data);
-    });
-  });
-};
+//used when cron is set up
+// exports.downloadUrls = function(url){
+//   http.get('http://' + url, function(response) {
+//     //send get req
+//     // helpers.handlePost(response, function(data) {
+//     fs.readFile(path.join(exports.paths.archivedSites, url), function(data){
+//       response.writeHead(200, handler.headers);
+//       response.end(data);
+//     });
+//   });
+// };
